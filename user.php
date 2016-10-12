@@ -3,13 +3,9 @@
 // This page
 // VARS
 ////
-$tit = "Listado de usuarios";
-$ths = array('username','Nombre y apellidos');
+$tit = $_GET['name'];
+$ths = array('Fecha','Entrenamiento','Nombre','Dist. requerida','Dist. realizada','% distancias','Tiempo','Ritmo objetivo','Ritno real','% ritmos');
 $tds = array(
-	array(
-		'username' => 'skotperez',
-		'realname' => 'Alfonso Sánchez Uzábal'
-	)
 );
 
 $ths_out = '<tr><th></th>';
@@ -25,7 +21,7 @@ foreach ( $tds as $td ) {
 	$tds_out .= '<tr>
 		<th scope="row">'.$count.'</th>
 		<td>'.$td['username'].'</td>
-		<td><a href="user.php?name='.$td['username'].'">'.$td['realname'].'</td>
+		<td>'.$td['realname'].'</td>
 	</tr>';
 }
 ?>
@@ -35,7 +31,7 @@ foreach ( $tds as $td ) {
 <header class="row"><h1 class="col-md-12"><?php echo $tit; ?></h1></header>
 
 	<div class="table-responsive">
-	<table class="table table-condensed table-hover">
+	<table class="table table-condensed">
 	<thead>
 		<?php echo $ths_out; ?>
 	</thead>
