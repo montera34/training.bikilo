@@ -1,2 +1,4 @@
 .htaccess
 .htpasswd
+php.ini
+config.php

@@ -43,4 +43,4 @@
 	</div>
 	</nav>
 </header>
-
+<?php require_once('config.php'); ?>
