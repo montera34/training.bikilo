@@ -1,17 +1,18 @@
 <?php include "header.php";
 
-// $_GET VARS
-$id = ( array_key_exists('id',$_GET) ) ? $_GET['id'] : '';
-$what_print = ( array_key_exists('whatprint',$_GET) ) ? $_GET['whatprint'] : '';
-$date_from = ( array_key_exists('datefrom',$_GET) ) ? $_GET['datefrom'] : '';
-$date_to = ( array_key_exists('dateto',$_GET) ) ? $_GET['dateto'] : '';
-
-
 // DEFAULTS
 $what_print_default = 'trainings';
 $fromat_default = 'csv';
 $date_from_default = date('Y-m-d', strtotime("-1 week") );
 $date_to_default = date('Y-m-d', strtotime("now") );
+
+
+// $_GET VARS
+$id = ( array_key_exists('id',$_GET) ) ? $_GET['id'] : '';
+$name = ( array_key_exists('name',$_GET) ) ? urldecode($_GET['name']) : '';
+$what_print = ( array_key_exists('whatprint',$_GET) ) ? $_GET['whatprint'] : $what_print_default;
+$date_from = ( array_key_exists('datefrom',$_GET) ) ? $_GET['datefrom'] : $date_from_default;
+$date_to = ( array_key_exists('dateto',$_GET) ) ? $_GET['dateto'] : $date_to_default;
 
 
 // API connection
@@ -33,10 +34,10 @@ $date_to_default = date('Y-m-d', strtotime("now") );
 $endpoint = 'entrenamientosporusuarios';
 
 $urlparts_array = array();
-$urlparts_array[] = ( $what_print != '' ) ? $what_print : $what_print_default;
+$urlparts_array[] = $what_print;
 $urlparts_array[] = $fromat_default;
-$urlparts_array[] = ( $date_from != '' ) ? $date_from : $date_from_default;
-$urlparts_array[] = ( $date_to != '' ) ? $date_to : $date_to_default;
+$urlparts_array[] = $date_from;
+$urlparts_array[] = $date_to;
 $urlparts = join('/',$urlparts_array);
 
 $params_array = array();
@@ -74,10 +75,6 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 
 		// LIST GENERATION
 		else {
-			if ( $line == 1 ) {
-				$id = $fp_csv[0];
-				$name = $fp_csv[1];
-			}
 //			$lastname = $fp_csv[2];
 //			$email = $fp_csv[3];
 			$tds_out .= '<tr><th scope="row">'.$line.'</th>';
@@ -109,8 +106,9 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 }
 
 
-$tit = $name // Page title
+$tit = $name; // Page title
 //$ths = array('Fecha','Entrenamiento','Nombre','Dist. requerida','Dist. realizada','% distancias','Tiempo','Ritmo objetivo','Ritno real','% ritmos');
+if ( $tds_out == '' ) { $tds_out = '<tr><td colspan="9"><div class="alert alert-warning" role="alert">No data for <strong>'.$name.'</strong> from <em>'.$date_from.'</em> to <em>'.$date_to.'</em> for '.$what_print.'.</div></td></tr>'; }
 ?>
 
 

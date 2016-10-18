@@ -39,8 +39,9 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 		// LIST GENERATION
 		else {
 			$id = $fp_csv[0];
-//			$firstname = $fp_csv[1];
-//			$lastname = $fp_csv[2];
+			$firstname = $fp_csv[1];
+			$lastname = $fp_csv[2];
+			$name = $firstname. ' ' .$lastname;
 //			$email = $fp_csv[3];
 			$tds_out .= '<tr><th scope="row">'.$line.'</th>';
 			foreach ( $fp_csv as $f ) {
@@ -49,18 +50,26 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 
 			// links to access user data
 			$tds_out .= '<td>
-				<a href="/user.php?id='.$id.'&whatprint=trainings">Trainings</a> |
+				<a href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=trainings">Trainings</a> |
 				<a href="/user.php?id='.$id.'&whatprint=leveltests">Level Tests</a> | 
 				<a href="/user.php?id='.$id.'&whatprint=fbrunning">FBRunning</a>
 				</td>';
 			$tds_out .= '</tr>';
 		}
 	}
-	$error_out = '';
+	$feedback_out = '
+	<div class="row">
+		<div class="col-md-8">
+			<div class="alert alert-info" role="alert">Mytrainik API URL consulted:<br><code>'.$data_url.'</code></p></div>
+		</div>
+		<div class="col-md-4">
+			<a class="btn btn-info" href="'.$data_url.'">Download CSV with this data</a>
+		</div>
+	</div>';
 } else { // if there is a problem
 
 	$tds_out = ''; $ths_out = '';
-	$error_out = '<div class="row"><div class="col-md-12"><div class="alert alert-danger" role="alert">There is a problem with Mytrainik API.<br>We cannot access Mytrainik data.</div></div></div>';
+	$feedback_out = '<div class="row"><div class="col-md-12"><div class="alert alert-danger" role="alert">There is a problem with Mytrainik API.<br>We cannot access Mytrainik data.</div></div></div>';
 }
 
 $tit = "Listado de usuarios"; // Page title
@@ -69,7 +78,7 @@ $tit = "Listado de usuarios"; // Page title
 <main class="container">
 <header class="row"><h1 class="col-md-12"><?php echo $tit; ?></h1></header>
 
-	<?php echo $error_out; ?>
+	<?php echo $feedback_out; ?>
 	<div class="table-responsive">
 	<table class="table table-condensed table-hover">
 	<thead>
