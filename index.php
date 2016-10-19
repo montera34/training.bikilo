@@ -12,13 +12,14 @@
 $endpoint = 'usuarios';
 $params = '';
 $data_url = $api_url.$api_key.'/'.$endpoint.'?'.$params;
+
+
+// OPEN CSV FILE
 $line_length = "4096";	 // max line lengh (increase in case you have longer lines than 1024 characters)
 $delimiter = ";";	 // field delimiter character
 $enclosure = '';	 // field enclosure character
 
-// open the CSV file
 $fp = fopen($data_url,'r');
-
 if ( $fp !== FALSE ) { // if the file exists and is readable
 	
 	$ths_out = '<tr><th></th>'; // headers container
@@ -50,26 +51,32 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 
 			// links to access user data
 			$tds_out .= '<td>
-				<a href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=trainings">Trainings</a> |
-				<a href="/user.php?id='.$id.'&whatprint=leveltests">Level Tests</a> | 
-				<a href="/user.php?id='.$id.'&whatprint=fbrunning">FBRunning</a>
+				<a class="btn btn-xs btn-success" href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=fbrunning"><span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span></a>
 				</td>';
+			$old_links .= '<td>
+				<a href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=trainings">Trainings</a> |
+				<a href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=leveltests">Level Tests</a> | 
+				<a href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=fbrunning">FBRunning</a>
+				</td>';
+
 			$tds_out .= '</tr>';
 		}
 	}
 	$feedback_out = '
 	<div class="row">
-		<div class="col-md-8">
-			<div class="alert alert-info" role="alert">Mytrainik API URL consulted:<br><code>'.$data_url.'</code></p></div>
-		</div>
-		<div class="col-md-4">
-			<a class="btn btn-info" href="'.$data_url.'">Download CSV with this data</a>
+		<div class="col-md-12 bspace">
+			<a class="btn btn-info" href="'.$data_url.'">Descargar CSV con los datos de este usuario</a>
 		</div>
 	</div>';
 } else { // if there is a problem
 
 	$tds_out = ''; $ths_out = '';
-	$feedback_out = '<div class="row"><div class="col-md-12"><div class="alert alert-danger" role="alert">There is a problem with Mytrainik API.<br>We cannot access Mytrainik data.</div></div></div>';
+	$feedback_out = '
+	<div class="row">
+		<div class="col-md-12 bspace">
+			<div class="alert alert-danger" role="alert">Ha habido un problema al conectar con el servidor de Mytrainik.<br>No es posible obtener los datos de este momento.</div>
+		</div>
+	</div>';
 }
 
 $tit = "Listado de usuarios"; // Page title
@@ -78,7 +85,6 @@ $tit = "Listado de usuarios"; // Page title
 <main class="container">
 <header class="row"><h1 class="col-md-12"><?php echo $tit; ?></h1></header>
 
-	<?php echo $feedback_out; ?>
 	<div class="table-responsive">
 	<table class="table table-condensed table-hover">
 	<thead>
@@ -89,6 +95,7 @@ $tit = "Listado de usuarios"; // Page title
 	</tbody>
 	</table>
 	</div>
+	<?php echo $feedback_out; ?>
 </main>
 
 <?php include "footer.php"; ?>
