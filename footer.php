@@ -1,7 +1,12 @@
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="/bootstrap/js/bootstrap.min.js"></script>
-
-</body><!-- end body as main container -->
+<script type="text/javascript" src="js/jquery.min.js"></script>
+<script type="text/javascript" src="/bootstrap/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+<script type="text/javascript">
+$( function() {
+	$( ".filter-date" ).datepicker({
+	  dateFormat: "yy-mm-dd"
+	});
+});
+</script>
+</body><!-- end body as main contaivaner -->
 </html>

@@ -1,19 +1,23 @@
 <?php include "header.php";
 
 // DEFAULTS
-$what_print_default = 'trainings';
+$what_print_default = 'fbrunning';
 $fromat_default = 'csv';
 $date_from_default = date('Y-m-d', strtotime("-1 week") );
 $date_to_default = date('Y-m-d', strtotime("now") );
-
+$ftype_default = '';
+$fname_default = '';
+$ftypes = array('Series_2000','Regeneración','Rodaje','Series_1000','Fartlek');
+$fnames = array('Carrera continua 1','Series 1 - 1','Series 1 - 2','Series 1 - 3','Series 1 - 4','Regeneración 1','Progresivos 1','Rodaje K 1','Series 1','Series 2','Series 3','Series 4','Series 5','Series 6','Enfriamiento 1','Fartlek 1 - 1','Fartlek 1 - 2','Fartlek 2 - 1','Fartlek 2 - 2','Fartlek 3 - 1','Fartlek 3 - 2','Fartlek 4 - 1','Fartlek 4 - 2');
 
 // $_GET VARS
 $id = ( array_key_exists('id',$_GET) ) ? $_GET['id'] : '';
 $name = ( array_key_exists('name',$_GET) ) ? urldecode($_GET['name']) : '';
 $what_print = ( array_key_exists('whatprint',$_GET) ) ? $_GET['whatprint'] : $what_print_default;
-$date_from = ( array_key_exists('datefrom',$_GET) ) ? $_GET['datefrom'] : $date_from_default;
-$date_to = ( array_key_exists('dateto',$_GET) ) ? $_GET['dateto'] : $date_to_default;
-
+$date_from = ( array_key_exists('fdatefrom',$_GET) ) ? $_GET['fdatefrom'] : $date_from_default;
+$date_to = ( array_key_exists('fdateto',$_GET) ) ? $_GET['fdateto'] : $date_to_default;
+$ftype = ( array_key_exists('ftype',$_GET) ) ? $_GET['ftype'] : $ftype_default;
+$fname = ( array_key_exists('fname',$_GET) ) ? $_GET['fname'] : $fname_default;
 
 // API connection
 // User data
@@ -47,13 +51,12 @@ $params = ( $params != '' ) ? '?'.$params : '';
 $data_url = $api_url.$api_key.'/'.$endpoint.'/'.$urlparts.$params;
 
 
+// OPEN CSV FILE
 $line_length = "4096";	 // max line lengh (increase in case you have longer lines than 1024 characters)
 $delimiter = ";";	 // field delimiter character
 $enclosure = '';	 // field enclosure character
 
-// open the CSV file
 $fp = fopen($data_url,'r');
-
 if ( $fp !== FALSE ) { // if the file exists and is readable
 		
 	$ths_out = '<tr><th></th>'; // headers container
@@ -75,15 +78,20 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 
 		// LIST GENERATION
 		else {
-//			$lastname = $fp_csv[2];
-//			$email = $fp_csv[3];
-			$tds_out .= '<tr><th scope="row">'.$line.'</th>';
-			$f_count = 0;
-			foreach ( $fp_csv as $f ) {
-				if ( $f_count != 0 && $f_count != 1 ) {
-					$tds_out .= '<td>'.$f.'</td>';
+			// run filters
+			$output = 1;
+			if ( $ftype != '' && $ftype != $fp_csv[4] ) { $output = 0; }
+			if ( $fname != '' && $fname != $fp_csv[5] ) { $output = 0; }
+
+			if ( $output == 1 ) {
+				$tds_out .= '<tr><th scope="row">'.$line.'</th>';
+				$f_count = 0;
+				foreach ( $fp_csv as $f ) {
+					if ( $f_count != 0 && $f_count != 1 ) {
+						$tds_out .= '<td>'.$f.'</td>';
+					}
+					$f_count++;
 				}
-				$f_count++;
 			}
 
 			// links to access user data
@@ -92,30 +100,81 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 	}
 	$feedback_out = '
 	<div class="row">
-		<div class="col-md-8">
-			<div class="alert alert-info" role="alert">Mytrainik API URL consulted:<br><code>'.$data_url.'</code></p></div>
-		</div>
-		<div class="col-md-4">
-			<a class="btn btn-info" href="'.$data_url.'">Download CSV with this data</a>
+		<div class="col-md-12 bspace">
+			<a class="btn btn-info" href="'.$data_url.'">Descargar CSV con los datos de este usuario</a>
 		</div>
 	</div>';
 } else { // if there is a problem
 
 	$tds_out = ''; $ths_out = '';
-	$feedback_out = '<div class="row"><div class="col-md-12"><div class="alert alert-danger" role="alert">There is a problem with Mytrainik API.<br>We cannot access Mytrainik data.</div></div></div>';
+	$feedback_out = '
+	<div class="row">
+		<div class="col-md-12 bspace">
+			<div class="alert alert-danger" role="alert">Ha habido un problema al conectar con el servidor de Mytrainik.<br>No es posible obtener los datos de este momento.</div>
+		</div>
+	</div>';
+}
+
+// NO DATA MESSAGE
+if ( $tds_out == '' ) {
+	// no data message
+	$tds_out = '
+	<tr><td colspan="9">
+		<div class="alert alert-warning" role="alert">No hay datos de <strong>'.$name.'</strong> en las fechas seleccionadas: desde <em>'.$date_from.'</em> hasta <em>'.$date_to.'</em>.</div>
+	</td></tr>';
+	$feedback_out = '';
+
 }
 
 
+// FILTERS
+$ftypes_out = '<option value=""></option>';
+foreach ( $ftypes as $t ) {
+	$selected = ( $t == $ftype ) ? ' selected' : '';
+	$ftypes_out .= '<option value="'.$t.'"'.$selected.'>'.$t.'</option>';
+}
+$fnames_out = '<option value=""></option>';
+foreach ( $fnames as $t ) {
+	$selected = ( $t == $fname ) ? ' selected' : '';
+	$fnames_out .= '<option value="'.$t.'"'.$selected.'>'.$t.'</option>';
+}
+$filters_out = '
+<div class="row"><div class="col-md-12 bspace">
+<form id="filters" class="form-inline" method="get">
+	<div class="form-group">
+		<label for="fdatefrom">Desde</label>
+		<input type="text" class="filter-date form-control" id="fdatefrom" name="fdatefrom" value="'.$date_from.'" />
+	</div>
+	<div class="form-group">
+		<label for="fdateto">Hasta</label>
+		<input type="text" class="filter-date form-control" id="fdateto" name="fdateto" value="'.$date_to.'" />
+	</div>
+	<div class="form-group">
+		<label for="ftype">Entrenamiento</label>
+		<select class="form-control" id="ftype" name="ftype">
+			'.$ftypes_out.'
+		</select>
+	</div>
+	<div class="form-group">
+		<label for="fname">Nombre</label>
+		<select class="form-control" id="fname" name="fname">
+			'.$fnames_out.'
+		</select>
+	</div>
+	<input type="submit" class="btn btn-success" value="Filtrar" />
+	<input type="hidden" name="id" value="'.$id.'" />
+	<input type="hidden" name="name" value="'.urlencode($name).'" />
+</form>
+</div></div>';
+
 $tit = $name; // Page title
-//$ths = array('Fecha','Entrenamiento','Nombre','Dist. requerida','Dist. realizada','% distancias','Tiempo','Ritmo objetivo','Ritno real','% ritmos');
-if ( $tds_out == '' ) { $tds_out = '<tr><td colspan="9"><div class="alert alert-warning" role="alert">No data for <strong>'.$name.'</strong> from <em>'.$date_from.'</em> to <em>'.$date_to.'</em> for '.$what_print.'.</div></td></tr>'; }
 ?>
 
 
 <main class="container">
 <header class="row"><h1 class="col-md-12"><?php echo $tit; ?></h1></header>
 
-	<?php echo $feedback_out; ?>
+	<?php echo $filters_out; ?>
 	<div class="table-responsive">
 	<table class="table table-condensed">
 	<thead>
@@ -126,6 +185,7 @@ if ( $tds_out == '' ) { $tds_out = '<tr><td colspan="9"><div class="alert alert-
 	</tbody>
 	</table>
 	</div>
+	<?php echo $feedback_out; ?>
 </main>
 
 <?php include "footer.php"; ?>
