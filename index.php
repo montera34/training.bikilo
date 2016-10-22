@@ -52,14 +52,8 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 			// links to access user data
 			$tds_out .= '<td>
 				<a class="btn btn-xs btn-success" href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=fbrunning"><span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span></a>
-				</td>';
-			$old_links .= '<td>
-				<a href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=trainings">Trainings</a> |
-				<a href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=leveltests">Level Tests</a> | 
-				<a href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=fbrunning">FBRunning</a>
-				</td>';
-
-			$tds_out .= '</tr>';
+				</td>
+			</tr>';
 		}
 	}
 	$feedback_out = '

@@ -1,5 +1,8 @@
 <?php include "header.php";
 
+// TRAINING TYPES
+include "data/training.type.php";
+
 // DEFAULTS
 $what_print_default = 'fbrunning';
 $fromat_default = 'csv';
@@ -7,8 +10,8 @@ $date_from_default = date('Y-m-d', strtotime("-1 week") );
 $date_to_default = date('Y-m-d', strtotime("now") );
 $ftype_default = '';
 $fname_default = '';
-$ftypes = array('Series_2000','Regeneración','Rodaje','Series_1000','Fartlek');
-$fnames = array('Carrera continua 1','Series 1 - 1','Series 1 - 2','Series 1 - 3','Series 1 - 4','Regeneración 1','Progresivos 1','Rodaje K 1','Series 1','Series 2','Series 3','Series 4','Series 5','Series 6','Enfriamiento 1','Fartlek 1 - 1','Fartlek 1 - 2','Fartlek 2 - 1','Fartlek 2 - 2','Fartlek 3 - 1','Fartlek 3 - 2','Fartlek 4 - 1','Fartlek 4 - 2');
+$ftypes = get_training_types();
+$fnames = $trainings_names;
 
 // $_GET VARS
 $id = ( array_key_exists('id',$_GET) ) ? $_GET['id'] : '';
