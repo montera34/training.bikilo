@@ -65,7 +65,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 	$feedback_out = '
 	<div class="row">
 		<div class="col-md-12 bspace">
-			<a class="btn btn-info" href="'.$data_url.'">Descargar CSV con los datos de este usuario</a>
+			<a class="btn btn-sm btn-info" href="'.$data_url.'">Descargar CSV con la lista de usuarios</a>
 		</div>
 	</div>';
 } else { // if there is a problem

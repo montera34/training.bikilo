@@ -101,7 +101,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 	$feedback_out = '
 	<div class="row">
 		<div class="col-md-12 bspace">
-			<a class="btn btn-info" href="'.$data_url.'">Descargar CSV con los datos de este usuario</a>
+			<a class="btn btn-sm btn-info" href="'.$data_url.'">Descargar CSV con los datos de este usuario</a>
 		</div>
 	</div>';
 } else { // if there is a problem
@@ -176,7 +176,7 @@ $tit = $name; // Page title
 
 	<?php echo $filters_out; ?>
 	<div class="table-responsive">
-	<table class="table table-condensed">
+	<table class="table table-condensed table-hover">
 	<thead>
 		<?php echo $ths_out; ?>
 	</thead>
