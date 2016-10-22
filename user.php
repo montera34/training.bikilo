@@ -19,8 +19,8 @@ $name = ( array_key_exists('name',$_GET) ) ? urldecode($_GET['name']) : '';
 $what_print = ( array_key_exists('whatprint',$_GET) ) ? $_GET['whatprint'] : $what_print_default;
 $date_from = ( array_key_exists('fdatefrom',$_GET) ) ? $_GET['fdatefrom'] : $date_from_default;
 $date_to = ( array_key_exists('fdateto',$_GET) ) ? $_GET['fdateto'] : $date_to_default;
-$ftype = ( array_key_exists('ftype',$_GET) ) ? $_GET['ftype'] : $ftype_default;
-$fname = ( array_key_exists('fname',$_GET) ) ? $_GET['fname'] : $fname_default;
+$ftype = ( array_key_exists('ftype',$_GET) ) ? strtolower($_GET['ftype']) : strtolower($ftype_default);
+$fname = ( array_key_exists('fname',$_GET) ) ? strtolower($_GET['fname']) : strtolower($fname_default);
 
 // API connection
 // User data
@@ -83,8 +83,8 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 		else {
 			// run filters
 			$output = 1;
-			if ( $ftype != '' && $ftype != $fp_csv[4] ) { $output = 0; }
-			if ( $fname != '' && $fname != $fp_csv[5] ) { $output = 0; }
+			if ( $ftype != '' && $ftype != strtolower($fp_csv[4]) ) { $output = 0; }
+			if ( $fname != '' && $fname != strtolower($fp_csv[5]) ) { $output = 0; }
 
 			if ( $output == 1 ) {
 				$tds_out .= '<tr><th scope="row">'.$line.'</th>';
