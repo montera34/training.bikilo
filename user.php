@@ -72,12 +72,12 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 		// HEADERS GENERATION
 		if ( $line == 0 ) {
 			foreach ( $fp_csv as $f ) {
-				if ( $f != 'Usuario' && $f != 'Nombre Usuario' && $f != '' ) {
-					if ( strpos($f, 'Cantidad' ) !== FALSE ) { $f = str_replace( 'Cantidad', 'Distancia', $f ); $f .= '<br><small>metros</small>'; }
-					elseif ( $f == 'Tiempo' ) { $f .= '<br><small>minutos</small>'; $extra = true; }
+				if ( $f != 'Usuario' && $f != 'Nombre Usuario' && $f != 'Id' && $f != '' ) {
+					if ( strpos($f, 'Cantidad' ) !== FALSE ) { $f = str_replace( 'Cantidad', 'Dist.', $f ); $f .= '<br><small>metros</small>'; }
+					elseif ( $f == 'Tiempo' ) { $f .= '<br><small>minutos</small>'; $extra = true; $extra_label = 'Dist.'; }
 					elseif ( strpos($f, 'Ritmo' ) !== FALSE ) { $f .= '<br><small>min:seg</small>'; }
-					elseif ( $f == 'Pulsaciones' ) { $f = '<span class="text-success">Ritmos<br><small>%</small></span>'; }
-					if ( isset($extra) ) { $ths_out .= '<th><span class="text-success">Distancias<br><small>%</small></span></th>'; unset($extra); }
+					elseif ( $f == 'Pulsaciones' ) { $extra = true; $extra_label = 'Ritmos'; }
+					if ( isset($extra) ) { $ths_out .= '<th><span class="text-success">'.$extra_label.'<br><small>%</small></span></th>'; unset($extra); }
 					$ths_out .= '<th>'.$f.'</th>';
 				}
 			}
@@ -119,10 +119,22 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 				if ( !is_int($$k) ) $$k = 0;
 			}
 			if ( $times['time'] != '' ) { // calculate distances
-				if ( $time != 0 && $ritme_objetive != 0 ) $fp_csv[6] = '<span class="text-info">'. round( ( $time / $ritme_objetive ) * 1000,2 ) .'</span>'; // distance_objetive
-				else $fp_csv[6] = '<span class="text-danger">faltan datos</span>';
-				if ( $time != 0 && $ritme_real != 0 ) $fp_csv[7] = '<span class="text-info">'. round( ( $time / $ritme_real ) * 1000,2 ) .'</span>'; // distance_real
-				else $fp_csv[7] = '<span class="text-danger">faltan datos</span>';
+				// distance_objetive
+				if ( $time != 0 && $ritme_objetive != 0 ) {
+					$distance_objetive = round( ( $time / $ritme_objetive ) * 1000,2 );
+					$fp_csv[6] = '<span class="text-info">'.$distance_objetive.'</span>';
+				} else {
+					$distance_objetive = 0;
+					$fp_csv[6] = '<span class="text-danger">faltan datos</span>';
+				}
+				// distance_real
+				if ( $time != 0 && $ritme_real != 0 ) {
+					$distance_real = round( ( $time / $ritme_real ) * 1000,2 );
+					$fp_csv[7] = '<span class="text-info">'.$distance_real.'</span>';
+				} else {
+					$distance_real = 0;
+					$fp_csv[7] = '<span class="text-danger">faltan datos</span>';
+				}
 			}
 			elseif ( $time == '' ) {
 				if ( $distance_real != '' && $ritme_real != '' ) {
@@ -137,13 +149,13 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 				$tds_out .= '<tr><th scope="row">'.$line.'</th>';
 				$f_count = 0;
 				foreach ( $fp_csv as $f ) {
-					if ( $f_count != 0 && $f_count != 1 && $f_count != 11 ) {
+					if ( $f_count != 0 && $f_count != 1 && $f_count != 2 ) {
 						if ( $f_count == 8 ) $tds_out .= '<td>'.$distance_percentage.'</td>';
+						if ( $f_count == 11 ) $tds_out .= '<td>'.$ritme_percentage.'</td>';
 						$tds_out .= '<td>'.$f.'</td>';
 					}
 					$f_count++;
 				}
-				$tds_out .= '<td>'.$ritme_percentage.'</td>';
 			}
 
 			// links to access user data
