@@ -72,14 +72,15 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 		// HEADERS GENERATION
 		if ( $line == 0 ) {
 			foreach ( $fp_csv as $f ) {
-				if ( $f != 'Usuario' && $f != 'Nombre Usuario' ) {
+				if ( $f != 'Usuario' && $f != 'Nombre Usuario' && $f != '' ) {
 					if ( strpos($f, 'Cantidad' ) !== FALSE ) { $f = str_replace( 'Cantidad', 'Distancia', $f ); $f .= '<br><small>metros</small>'; }
-					elseif ( $f == 'Tiempo' ) { $f .= '<br><small>minutos</small>'; }
+					elseif ( $f == 'Tiempo' ) { $f .= '<br><small>minutos</small>'; $extra = true; }
 					elseif ( strpos($f, 'Ritmo' ) !== FALSE ) { $f .= '<br><small>min:seg</small>'; }
+					elseif ( $f == 'Pulsaciones' ) { $f = '<span class="text-success">Ritmos<br><small>%</small></span>'; }
+					if ( isset($extra) ) { $ths_out .= '<th><span class="text-success">Distancias<br><small>%</small></span></th>'; unset($extra); }
 					$ths_out .= '<th>'.$f.'</th>';
 				}
 			}
-			$ths_out .= '<th></th>';
 		}
 
 		// LIST GENERATION
@@ -128,16 +129,21 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 					$fp_csv[8] = '<span class="text-info">'. round( $ritme_real * $distance_real * ( 1 / 60 ) * ( 1 / 1000 ) ) .'</span>';
 				}
 			}
+			// get distance and ritme relations
+			$distance_percentage = ( $distance_objetive != 0 ) ? '<span class="text-success">'. round( ( $distance_real * 100 ) / $distance_objetive ) .'</span>' : '';
+			$ritme_percentage = ( $ritme_objetive != 0 ) ? '<span class="text-success">'. round( ( $ritme_real * 100 ) / $ritme_objetive ) .'</span>' : '';
 
 			if ( $output == 1 ) {
 				$tds_out .= '<tr><th scope="row">'.$line.'</th>';
 				$f_count = 0;
 				foreach ( $fp_csv as $f ) {
-					if ( $f_count != 0 && $f_count != 1 ) {
+					if ( $f_count != 0 && $f_count != 1 && $f_count != 11 ) {
+						if ( $f_count == 8 ) $tds_out .= '<td>'.$distance_percentage.'</td>';
 						$tds_out .= '<td>'.$f.'</td>';
 					}
 					$f_count++;
 				}
+				$tds_out .= '<td>'.$ritme_percentage.'</td>';
 			}
 
 			// links to access user data
@@ -224,6 +230,7 @@ $legend_out = '
 		<li>Importado de Mytrainik</li>
 		<li class="text-info">Calculado</li>
 		<li class="text-danger">Error en el cálculo</li>
+		<li class="text-success">Relación de valores</li>
 	</ul>
 </div></div>';
 ?>
