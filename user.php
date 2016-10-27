@@ -19,9 +19,9 @@ $name = ( array_key_exists('name',$_GET) ) ? urldecode($_GET['name']) : '';
 $what_print = ( array_key_exists('whatprint',$_GET) ) ? $_GET['whatprint'] : $what_print_default;
 $date_from = ( array_key_exists('fdatefrom',$_GET) ) ? $_GET['fdatefrom'] : $date_from_default;
 $date_to = ( array_key_exists('fdateto',$_GET) ) ? $_GET['fdateto'] : $date_to_default;
-$ftype = ( array_key_exists('ftype',$_GET) ) ? strtolower($_GET['ftype']) : strtolower($ftype_default);
-$fname = ( array_key_exists('fname',$_GET) ) ? strtolower($_GET['fname']) : strtolower($fname_default);
-
+$ftype = ( array_key_exists('ftype',$_GET) ) ? trim(strtolower($_GET['ftype'])) : trim(strtolower($ftype_default));
+$fname = ( array_key_exists('fname',$_GET) ) ? trim(strtolower($_GET['fname'])) : trim(strtolower($fname_default));
+echo $fname;
 // API connection
 // User data
 // @endpoint entrenamientosporusuarios
@@ -73,7 +73,9 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 		if ( $line == 0 ) {
 			foreach ( $fp_csv as $f ) {
 				if ( $f != 'Usuario' && $f != 'Nombre Usuario' ) {
-					if ( strpos($f, 'Cantidad' ) !== FALSE ) $f = str_replace( 'Cantidad', 'Distancia', $f );
+					if ( strpos($f, 'Cantidad' ) !== FALSE ) { $f = str_replace( 'Cantidad', 'Distancia', $f ); $f .= '<br><small>metros</small>'; }
+					elseif ( $f == 'Tiempo' ) { $f .= '<br><small>minutos</small>'; }
+					elseif ( strpos($f, 'Ritmo' ) !== FALSE ) { $f .= '<br><small>min:seg</small>'; }
 					$ths_out .= '<th>'.$f.'</th>';
 				}
 			}
@@ -83,11 +85,24 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 		// LIST GENERATION
 		else {
 			// run filters
+			$fp_csv[5] = preg_replace('/[0-9].*$/', '', $fp_csv[5]);
 			$output = 1;
-			if ( $ftype != '' && $ftype != strtolower($fp_csv[4]) ) { $output = 0; }
-			if ( $fname != '' && $fname != strtolower($fp_csv[5]) ) { $output = 0; }
+			if ( $ftype != '' && $ftype != trim(strtolower($fp_csv[4])) ) { $output = 0; }
+			if ( $fname != '' && $fname != trim(strtolower($fp_csv[5])) ) { $output = 0;}
 
 			// get time or distance
+			if (
+				trim($fp_csv[5]) == 'Rodaje K' ||
+				trim($fp_csv[5]) == 'Regeneración' ||
+				trim($fp_csv[5]) == 'Carrera continua' ||
+				trim($fp_csv[5]) == 'Enfriamiento' ||
+				trim($fp_csv[5]) == 'PF' ||
+				trim($fp_csv[5]) == 'Competición' ||
+				trim($fp_csv[5]) == 'Trabajo en arena'
+			) {
+				$fp_csv[6] = $fp_csv[6] * 1000;
+				$fp_csv[7] = $fp_csv[7] * 1000;
+			}
 			$distance_objetive = $fp_csv[6];
 			$distance_real = $fp_csv[7];
 			$times = array(
@@ -95,18 +110,23 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 				'ritme_objetive' => $fp_csv[9],
 				'ritme_real' => $fp_csv[10]
 			);
+			foreach ( $times as $k => $t ) {
+				$t = explode(':',$t);
+				if ( count($t) == 2 ) $$k = ( $t[0] * 60 ) + $t[1];
+				elseif ( count($t) == 1 ) $$k = ( $t[0] * 60 );
+				else $$k = 0;
+				if ( !is_int($$k) ) $$k = 0;
+			}
 			if ( $times['time'] != '' ) { // calculate distances
-				foreach ( $times as $k => $t ) {
-					$t = explode(':',$t);
-					if ( count($t) == 2 ) $$k = ( $t[0] * 60 ) + $t[1];
-					elseif ( count($t) == 1 ) $$k = ( $t[0] * 60 );
-					else $$k = 0;
-					if ( !is_int($$k) ) $$k = 0;
-				}
 				if ( $time != 0 && $ritme_objetive != 0 ) $fp_csv[6] = '<span class="text-info">'. round( ( $time / $ritme_objetive ) * 1000,2 ) .'</span>'; // distance_objetive
 				else $fp_csv[6] = '<span class="text-danger">faltan datos</span>';
 				if ( $time != 0 && $ritme_real != 0 ) $fp_csv[7] = '<span class="text-info">'. round( ( $time / $ritme_real ) * 1000,2 ) .'</span>'; // distance_real
 				else $fp_csv[7] = '<span class="text-danger">faltan datos</span>';
+			}
+			elseif ( $time == '' ) {
+				if ( $distance_real != '' && $ritme_real != '' ) {
+					$fp_csv[8] = '<span class="text-info">'. round( $ritme_real * $distance_real * ( 1 / 60 ) * ( 1 / 1000 ) ) .'</span>';
+				}
 			}
 
 			if ( $output == 1 ) {
@@ -159,12 +179,12 @@ $tit = $name;
 // FILTERS
 $ftypes_out = '<option value=""></option>';
 foreach ( $ftypes as $t ) {
-	$selected = ( $t == $ftype ) ? ' selected' : '';
+	$selected = ( strtolower($t) == $ftype ) ? ' selected' : '';
 	$ftypes_out .= '<option value="'.$t.'"'.$selected.'>'.$t.'</option>';
 }
 $fnames_out = '<option value=""></option>';
 foreach ( $fnames as $t ) {
-	$selected = ( $t == $fname ) ? ' selected' : '';
+	$selected = ( strtolower($t) == $fname ) ? ' selected' : '';
 	$fnames_out .= '<option value="'.$t.'"'.$selected.'>'.$t.'</option>';
 }
 $filters_out = '
@@ -200,7 +220,7 @@ $filters_out = '
 $legend_out = '
 <div class="row"><div class="col-md-12 bspace">
 	<strong>Leyenda de datos: </strong>
-	<ul class="list-inline">
+	<ul class="legend list-inline">
 		<li>Importado de Mytrainik</li>
 		<li class="text-info">Calculado</li>
 		<li class="text-danger">Error en el cálculo</li>
