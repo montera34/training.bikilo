@@ -73,6 +73,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 		if ( $line == 0 ) {
 			foreach ( $fp_csv as $f ) {
 				if ( $f != 'Usuario' && $f != 'Nombre Usuario' ) {
+					if ( strpos($f, 'Cantidad' ) !== FALSE ) $f = str_replace( 'Cantidad', 'Distancia', $f );
 					$ths_out .= '<th>'.$f.'</th>';
 				}
 			}
@@ -85,6 +86,28 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 			$output = 1;
 			if ( $ftype != '' && $ftype != strtolower($fp_csv[4]) ) { $output = 0; }
 			if ( $fname != '' && $fname != strtolower($fp_csv[5]) ) { $output = 0; }
+
+			// get time or distance
+			$distance_objetive = $fp_csv[6];
+			$distance_real = $fp_csv[7];
+			$times = array(
+				'time' => $fp_csv[8],
+				'ritme_objetive' => $fp_csv[9],
+				'ritme_real' => $fp_csv[10]
+			);
+			if ( $times['time'] != '' ) { // calculate distances
+				foreach ( $times as $k => $t ) {
+					$t = explode(':',$t);
+					if ( count($t) == 2 ) $$k = ( $t[0] * 60 ) + $t[1];
+					elseif ( count($t) == 1 ) $$k = ( $t[0] * 60 );
+					else $$k = 0;
+					if ( !is_int($$k) ) $$k = 0;
+				}
+				if ( $time != 0 && $ritme_objetive != 0 ) $fp_csv[6] = '<span class="text-info">'. round( ( $time / $ritme_objetive ) * 1000,2 ) .'</span>'; // distance_objetive
+				else $fp_csv[6] = '<span class="text-danger">faltan datos</span>';
+				if ( $time != 0 && $ritme_real != 0 ) $fp_csv[7] = '<span class="text-info">'. round( ( $time / $ritme_real ) * 1000,2 ) .'</span>'; // distance_real
+				else $fp_csv[7] = '<span class="text-danger">faltan datos</span>';
+			}
 
 			if ( $output == 1 ) {
 				$tds_out .= '<tr><th scope="row">'.$line.'</th>';
@@ -130,6 +153,9 @@ if ( $tds_out == '' ) {
 }
 
 
+// PAGE TITLE
+$tit = $name; 
+
 // FILTERS
 $ftypes_out = '<option value=""></option>';
 foreach ( $ftypes as $t ) {
@@ -170,14 +196,24 @@ $filters_out = '
 </form>
 </div></div>';
 
-$tit = $name; // Page title
+// LEGEND
+$legend_out = '
+<div class="row"><div class="col-md-12 bspace">
+	<strong>Leyenda de datos: </strong>
+	<ul class="list-inline">
+		<li>Importado de Mytrainik</li>
+		<li class="text-info">Calculado</li>
+		<li class="text-danger">Error en el cálculo</li>
+	</ul>
+</div></div>';
 ?>
 
 
 <main class="container">
 <header class="row"><h1 class="col-md-12"><?php echo $tit; ?></h1></header>
 
-	<?php echo $filters_out; ?>
+	<?php 	echo $filters_out;
+		echo $legend_out; ?>
 	<div class="table-responsive">
 	<table class="table table-condensed table-hover">
 	<thead>
