@@ -21,7 +21,7 @@ $date_from = ( array_key_exists('fdatefrom',$_GET) ) ? $_GET['fdatefrom'] : $dat
 $date_to = ( array_key_exists('fdateto',$_GET) ) ? $_GET['fdateto'] : $date_to_default;
 $ftype = ( array_key_exists('ftype',$_GET) ) ? trim(strtolower($_GET['ftype'])) : trim(strtolower($ftype_default));
 $fname = ( array_key_exists('fname',$_GET) ) ? trim(strtolower($_GET['fname'])) : trim(strtolower($fname_default));
-echo $fname;
+
 // API connection
 // User data
 // @endpoint entrenamientosporusuarios
@@ -61,9 +61,25 @@ $enclosure = '';	 // field enclosure character
 
 $fp = fopen($data_url,'r');
 if ( $fp !== FALSE ) { // if the file exists and is readable
-		
+
 	$ths_out = '<tr><th></th>'; // headers container
 	$tds_out = ''; // list container
+
+	$sum_dist_objective = 0;
+	$sum_dist_real = 0;
+	$sum_dist_percent = 0;
+	$sum_dist_percent_count = 0;
+	$sum_time = 0;
+	$sum_ritme_objetive = 0;
+	$sum_ritme_objetive_count = 0;
+	$sum_ritme_real = 0;
+	$sum_ritme_real_count = 0;
+	$sum_ritme_percent = 0;
+	$sum_ritme_percent_count = 0;
+
+	$th_class = '';
+	$td_class = '';
+
 	$line = -1;
 	while ( ($fp_csv = fgetcsv($fp,$line_length,$delimiter)) !== FALSE ) { // begin main loop
 
@@ -73,14 +89,15 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 		if ( $line == 0 ) {
 			foreach ( $fp_csv as $f ) {
 				if ( $f != 'Usuario' && $f != 'Nombre Usuario' && $f != 'Id' && $f != '' ) {
-					if ( strpos($f, 'Cantidad' ) !== FALSE ) { $f = str_replace( 'Cantidad', 'Dist.', $f ); $f .= '<br><small>metros</small>'; }
-					elseif ( $f == 'Tiempo' ) { $f .= '<br><small>minutos</small>'; $extra = true; $extra_label = 'Dist.'; }
-					elseif ( strpos($f, 'Ritmo' ) !== FALSE ) { $f .= '<br><small>min:seg</small>'; }
+					if ( strpos($f, 'Cantidad' ) !== FALSE ) { $f = str_replace( 'Cantidad', 'Dist.', $f ); $f .= '<br><small>metros</small>'; $th_class = ' class="text-right"'; }
+					elseif ( $f == 'Tiempo' ) { $f .= '<br><small>H:m:s</small>'; $extra = true; $extra_label = 'Dist.'; }
+					elseif ( strpos($f, 'Ritmo' ) !== FALSE ) { $f .= '<br><small>m:s</small>'; }
 					elseif ( $f == 'Pulsaciones' ) { $extra = true; $extra_label = 'Ritmos'; }
-					if ( isset($extra) ) { $ths_out .= '<th><span class="text-success">'.$extra_label.'<br><small>%</small></span></th>'; unset($extra); }
-					$ths_out .= '<th>'.$f.'</th>';
+					if ( isset($extra) ) { $ths_out .= '<th'.$th_class.'><span class="text-success">'.$extra_label.'<br><small>%</small></span></th>'; unset($extra); }
+					$ths_out .= '<th'.$th_class.'>'.$f.'</th>';
 				}
 			}
+			$th_class = '';
 		}
 
 		// LIST GENERATION
@@ -91,85 +108,137 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 			if ( $ftype != '' && $ftype != trim(strtolower($fp_csv[4])) ) { $output = 0; }
 			if ( $fname != '' && $fname != trim(strtolower($fp_csv[5])) ) { $output = 0;}
 
-			// get time or distance
-			if (
-				trim($fp_csv[5]) == 'Rodaje K' ||
-				trim($fp_csv[5]) == 'Regeneración' ||
-				trim($fp_csv[5]) == 'Carrera continua' ||
-				trim($fp_csv[5]) == 'Enfriamiento' ||
-				trim($fp_csv[5]) == 'PF' ||
-				trim($fp_csv[5]) == 'Competición' ||
-				trim($fp_csv[5]) == 'Trabajo en arena'
-			) {
-				$fp_csv[6] = $fp_csv[6] * 1000;
-				$fp_csv[7] = $fp_csv[7] * 1000;
-			}
-			$distance_objetive = $fp_csv[6];
-			$distance_real = $fp_csv[7];
-			$times = array(
-				'time' => $fp_csv[8],
-				'ritme_objetive' => $fp_csv[9],
-				'ritme_real' => $fp_csv[10]
-			);
-			foreach ( $times as $k => $t ) {
-				$t = explode(':',$t);
-				if ( count($t) == 2 ) $$k = ( $t[0] * 60 ) + $t[1];
-				elseif ( count($t) == 1 ) $$k = ( $t[0] * 60 );
-				else $$k = 0;
-				if ( !is_int($$k) ) $$k = 0;
-			}
-			if ( $times['time'] != '' ) { // calculate distances
-				// distance_objetive
-				if ( $time != 0 && $ritme_objetive != 0 ) {
-					$distance_objetive = round( ( $time / $ritme_objetive ) * 1000,2 );
-					$fp_csv[6] = '<span class="text-info">'.$distance_objetive.'</span>';
-				} else {
-					$distance_objetive = 0;
-					$fp_csv[6] = '<span class="text-danger">faltan datos</span>';
-				}
-				// distance_real
-				if ( $time != 0 && $ritme_real != 0 ) {
-					$distance_real = round( ( $time / $ritme_real ) * 1000,2 );
-					$fp_csv[7] = '<span class="text-info">'.$distance_real.'</span>';
-				} else {
-					$distance_real = 0;
-					$fp_csv[7] = '<span class="text-danger">faltan datos</span>';
-				}
-			}
-			elseif ( $time == '' ) {
-				if ( $distance_real != '' && $ritme_real != '' ) {
-					$fp_csv[8] = '<span class="text-info">'. round( $ritme_real * $distance_real * ( 1 / 60 ) * ( 1 / 1000 ) ) .'</span>';
-				}
-			}
-			// get distance and ritme relations
-			$distance_percentage = ( $distance_objetive != 0 ) ? '<span class="text-success">'. round( ( $distance_real * 100 ) / $distance_objetive ) .'</span>' : '';
-			$ritme_percentage = ( $ritme_objetive != 0 ) ? '<span class="text-success">'. round( ( $ritme_real * 100 ) / $ritme_objetive ) .'</span>' : '';
-
 			if ( $output == 1 ) {
+	
+				// get time or distance
+				if (
+					trim($fp_csv[5]) == 'Rodaje K' ||
+					trim($fp_csv[5]) == 'Regeneración' ||
+					trim($fp_csv[5]) == 'Carrera continua' ||
+					trim($fp_csv[5]) == 'Enfriamiento' ||
+					trim($fp_csv[5]) == 'PF' ||
+					trim($fp_csv[5]) == 'Competición' ||
+					trim($fp_csv[5]) == 'Trabajo en arena'
+				) {
+					$fp_csv[6] = $fp_csv[6] * 1000;
+					$fp_csv[7] = $fp_csv[7] * 1000;
+				}
+				$distance_objetive = $fp_csv[6];
+				settype($distance_objetive,'float');
+				$distance_real = $fp_csv[7];
+				settype($distance_real,'float');
+				$times = array(
+					'time' => $fp_csv[8],
+					'ritme_objetive' => $fp_csv[9],
+					'ritme_real' => $fp_csv[10]
+				);
+				foreach ( $times as $k => $t ) {
+					$t = explode(':',$t);
+					if ( count($t) == 2 ) $$k = ( $t[0] * 60 ) + $t[1];
+					elseif ( count($t) == 1 ) $$k = ( $t[0] * 60 );
+					else $$k = 0;
+					if ( !is_int($$k) ) $$k = 0;
+				}
+				$fp_csv[9] = gmdate("i:s", $ritme_objetive);
+				$fp_csv[10] = gmdate("i:s", $ritme_real);
+				if ( $times['time'] != '' ) { // calculate distances
+					// distance_objetive
+					if ( $time != 0 && $ritme_objetive != 0 ) {
+						$distance_objetive = round( ( $time / $ritme_objetive ) * 1000,2 );
+						$fp_csv[6] = '<span class="text-info">'.$distance_objetive.'</span>';
+					} else {
+						$distance_objetive = 0;
+						$fp_csv[6] = '<span class="text-danger">faltan datos</span>';
+					}
+					// distance_real
+					if ( $time != 0 && $ritme_real != 0 ) {
+						$distance_real = round( ( $time / $ritme_real ) * 1000,2 );
+						$fp_csv[7] = '<span class="text-info">'.$distance_real.'</span>';
+					} else {
+						$distance_real = 0;
+						$fp_csv[7] = '<span class="text-danger">faltan datos</span>';
+					}
+					$fp_csv[8] = gmdate("H:i:s", $time);
+				}
+				elseif ( $time == '' ) { // calculate time
+					if ( $distance_real != '' && $ritme_real != '' ) {
+						$time = round( $ritme_real * $distance_real * ( 1 / 1000 ) );
+						$fp_csv[8] = '<span class="text-info">'.gmdate("H:i:s", $time).'</span>';
+					}
+				}
+				// get distance and ritme relations
+				$distance_percentage = ( $distance_objetive != 0 ) ? round( ( $distance_real * 100 ) / $distance_objetive ) : 0;
+				$distance_percentage_out = '<span class="text-success">'.$distance_percentage.'</span>';
+				$ritme_percentage = ( $ritme_objetive != 0 ) ? round( ( $ritme_real * 100 ) / $ritme_objetive ) : 0;
+				$ritme_percentage_out = '<span class="text-success">'.$ritme_percentage.'</span>';
+	
+				// calcule sum and average distances
+				$sum_dist_objective += $distance_objetive;
+				$sum_dist_real += $distance_real;
+				if ( $distance_percentage != 0 ) { $sum_dist_percent += $distance_percentage; $sum_dist_percent_count++; }
+				// calcule sum and average ritmes and time
+				$sum_time += $time;
+				if ( $ritme_objetive != 0 ) { $sum_ritme_objetive += $ritme_objetive; $sum_ritme_objetive_count++; }
+				if ( $ritme_real != 0 ) { $sum_ritme_real += $ritme_real; $sum_ritme_real_count++; }
+				if ( $ritme_percentage != 0 ) { $sum_ritme_percent += $ritme_percentage; $sum_ritme_percent_count++; }
+
+				// generate output
 				$tds_out .= '<tr><th scope="row">'.$line.'</th>';
 				$f_count = 0;
 				foreach ( $fp_csv as $f ) {
+					if ( $f_count == 6 ) { $td_class = ' class="text-right"'; }
 					if ( $f_count != 0 && $f_count != 1 && $f_count != 2 ) {
-						if ( $f_count == 8 ) $tds_out .= '<td>'.$distance_percentage.'</td>';
-						if ( $f_count == 11 ) $tds_out .= '<td>'.$ritme_percentage.'</td>';
-						$tds_out .= '<td>'.$f.'</td>';
+						if ( $f_count == 8 ) $tds_out .= '<td'.$td_class.'>'.$distance_percentage_out.'</td>';
+						if ( $f_count == 11 ) $tds_out .= '<td'.$td_class.'>'.$ritme_percentage_out.'</td>';
+						$tds_out .= '<td'.$td_class.'>'.$f.'</td>';
 					}
 					$f_count++;
 				}
 			}
 
-			// links to access user data
 			$tds_out .= '</tr>';
+			$td_class = '';
 		}
 	}
+
+	$tds_out .= '<tr>';
+	$sum_count = 0;
+	$sum_time_out = ( $sum_time <= 86400 ) ? gmdate("H:i:s", $sum_time) : round($sum_time / 60) .' *';
+	while ( $sum_count <= 11 ) {
+		if ( $sum_count == 4 ) $tds_out .= '<td class="text-info text-right"><strong>'. round($sum_dist_objective,2) .'</strong></td>';
+		elseif ( $sum_count == 5 ) $tds_out .= '<td class="text-info text-right"><strong>'. round($sum_dist_real,2) .'</strong></td>';
+		elseif ( $sum_count == 6 ) $tds_out .= '<td class="text-success text-right"><strong>'. round($sum_dist_percent / $sum_dist_percent_count) .'</strong></td>';
+		elseif ( $sum_count == 7 ) $tds_out .= '<td class="text-info text-right"><strong>'.$sum_time_out.'</strong></td>';
+		elseif ( $sum_count == 8 ) $tds_out .= '<td class="text-info text-right"><strong>'.gmdate("i:s",$sum_ritme_objetive / $sum_ritme_objetive_count).'</strong></td>';
+		elseif ( $sum_count == 9 ) $tds_out .= '<td class="text-info text-right"><strong>'.gmdate("i:s",$sum_ritme_real / $sum_ritme_real_count).'</strong></td>';
+		elseif ( $sum_count == 10 ) $tds_out .= '<td class="text-success text-right"><strong>'.round($sum_ritme_percent / $sum_ritme_percent_count).'</strong></td>';
+		else { $tds_out .= '<td class="active"></td>'; }
+		$sum_count++;
+	}
+	$tds_out .= '</tr>';
+	if ( $sum_time >= 86400 ) {
+		$tds_out .= '
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td colspan="4">* <small>Si el tiempo suma más de 24 horas, aparece en minutos.</small></td>
+		</tr>';
+	}
+
 	$feedback_out = '
 	<div class="row">
 		<div class="col-md-12 bspace">
 			<a class="btn btn-sm btn-info" href="'.$data_url.'">Descargar CSV con los datos de este usuario</a>
 		</div>
 	</div>';
-} else { // if there is a problem
 
+} else { // if there is a problem with Mytrainik API
 	$tds_out = ''; $ths_out = '';
 	$feedback_out = '
 	<div class="row">
