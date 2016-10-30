@@ -169,7 +169,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 				// get distance and ritme relations
 				$distance_percentage = ( $distance_objetive != 0 ) ? round( ( $distance_real * 100 ) / $distance_objetive ) : 0;
 				$distance_percentage_out = '<span class="text-success">'.$distance_percentage.'</span>';
-				$ritme_percentage = ( $ritme_objetive != 0 ) ? round( ( $ritme_real * 100 ) / $ritme_objetive ) : 0;
+				$ritme_percentage = ( $ritme_objetive != 0 ) ? round( ( $ritme_objetive * 100 ) / $ritme_real ) : 0;
 				$ritme_percentage_out = '<span class="text-success">'.$ritme_percentage.'</span>';
 	
 				// calcule sum and average distances
