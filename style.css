@@ -4,3 +4,9 @@ body { padding-top: 70px; }
 
 th { vertical-align: top !important; }
 .legend { display: inline; }
+
+#views .btn-default:hover {
+	color: #fff;
+	background-color: #ec971f;
+	border-color: #d58512;
+}

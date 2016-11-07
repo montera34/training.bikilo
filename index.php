@@ -51,7 +51,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 
 			// links to access user data
 			$tds_out .= '<td>
-				<a class="btn btn-xs btn-success" href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=fbrunning"><span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span></a>
+				<a class="btn btn-xs btn-success" href="/user.php?id='.$id.'&name='.urlencode($name).'&whatprint=fbrunning&view=grouped"><span class="glyphicon glyphicon-menu-right" aria-hidden="true"></span></a>
 				</td>
 			</tr>';
 		}
