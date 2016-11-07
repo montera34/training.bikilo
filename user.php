@@ -77,6 +77,8 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 	$sum_ritme_real_count = 0;
 	$sum_ritme_percent = 0;
 	$sum_ritme_percent_count = 0;
+	$sum_pulse = 0;
+	$sum_pulse_count = 0;
 
 	$th_class = '';
 	$td_class = '';
@@ -96,6 +98,8 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 	$ritme_percentage_total = 0;
 	$ritme_objetive_total_count = 0;
 	$ritme_real_total_count = 0;
+	$pulse_total = 0;
+	$pulse_total_count = 0;
 
 	$line = -1;
 	while ( ($fp_csv = fgetcsv($fp,$line_length,$delimiter)) !== FALSE ) { // begin main loop
@@ -170,6 +174,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 				$time = $fp_csv[8];
 				$ritme_objetive = $fp_csv[9];
 				$ritme_real = $fp_csv[10];
+				$pulse = ( $fp_csv[11] != '' ) ? $fp_csv[11] : 0;
 
 				// calculate distances
 				if ( $time !== 0 ) {
@@ -212,7 +217,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 						if ( is_numeric($time) ) $time_total += $time;
 						if ( is_numeric($ritme_objetive) ) { $ritme_objetive_total += $ritme_objetive; $ritme_objetive_total_count++; }
 						if ( is_numeric($ritme_real) ) { $ritme_real_total += $ritme_real; $ritme_real_total_count++; }
-						$pulse_out = $fp_csv[11];
+						if ( is_numeric($pulse) ) { $pulse_total += $pulse; $pulse_total_count++; }
 						$time_prev = $fp_csv[8];
 
 					} else { // if not the same date and training type, then output total
@@ -240,7 +245,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 									$tds_out .= '<td'.$td_class.'>'.$distance_percentage_out.'</td>'; }
 								elseif ( $f_count == 9 ) { $f = ( is_numeric($ritme_objetive_total) ) ? gmdate("i:s", $ritme_objetive_total / $ritme_objetive_total_count ) : gmdate("i:s", 0); }
 								elseif ( $f_count == 10 ) { $f = ( is_numeric($ritme_real_total) ) ? gmdate("i:s", $ritme_real_total / $ritme_real_total_count ) : gmdate("i:s", 0); }
-								elseif ( $f_count == 11 ) { $f = $pulse_out; $tds_out .= '<td'.$td_class.'>'.$ritme_percentage_out.'</td>'; }
+								elseif ( $f_count == 11 ) { $f = round($pulse_total / $pulse_total_count); $tds_out .= '<td'.$td_class.'>'.$ritme_percentage_out.'</td>'; }
 								$tds_out .= '<td'.$td_class.'>'.$f.'</td>';
 							}
 							$f_count++;
@@ -250,11 +255,12 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 						$sum_dist_objective += $distance_objetive_total;
 						$sum_dist_real += $distance_real_total;
 						if ( $distance_percentage_total != 0 ) { $sum_dist_percent += $distance_percentage_total; $sum_dist_percent_count++; }
-						// calcule sum and average ritmes and time
+						// calcule sum and average ritmes, time and pulse
 						$sum_time += $time_total;
 						if ( $ritme_objetive_total != 0 ) { $sum_ritme_objetive += $ritme_objetive_total / $ritme_objetive_total_count; $sum_ritme_objetive_count++; }
 						if ( $ritme_real_total != 0 ) { $sum_ritme_real += $ritme_real_total / $ritme_real_total_count; $sum_ritme_real_count++; }
 						if ( $ritme_percentage_total != 0 ) { $sum_ritme_percent += $ritme_percentage_total; $sum_ritme_percent_count++; }
+						if ( $pulse_total != 0 ) { $sum_pulse += $pulse_total / $pulse_total_count; $sum_pulse_count++; }
 
 						$date_out = $fp_csv[3];
 						$training_out = $fp_csv[4];
@@ -262,8 +268,12 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 						$distance_objetive_total = ( is_numeric($distance_objetive) ) ? $distance_objetive : 0;
 						$distance_real_total = ( is_numeric($distance_real) ) ? $distance_real : 0;
 						$time_total = ( is_numeric($time) ) ? $time : 0;
-						if ( is_numeric($ritme_objetive) ) { $ritme_objetive_total =  $ritme_objetive; $ritme_objetive_total_count = 1; } else { $ritme_objetive_total = 0; }
-						if ( is_numeric($ritme_real) ) { $ritme_real_total = $ritme_real; $ritme_real_total_count = 1; } else { $ritme_real_total = 0; }
+						if ( is_numeric($ritme_objetive) ) { $ritme_objetive_total =  $ritme_objetive; } else { $ritme_objetive_total = 0; }
+						$ritme_objetive_total_count = 1;
+						if ( is_numeric($ritme_real) ) { $ritme_real_total = $ritme_real; } else { $ritme_real_total = 0; }
+						$ritme_real_total_count = 1;
+						if ( is_numeric($pulse) ) { $pulse_total = $pulse; } else { $pulse_total = 0; }
+						$pulse_total_count = 1; 
 
 					}
 					$date_old = $fp_csv[3];
@@ -286,6 +296,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 					if ( $ritme_objetive != 0 ) { $sum_ritme_objetive += $ritme_objetive; $sum_ritme_objetive_count++; }
 					if ( $ritme_real != 0 ) { $sum_ritme_real += $ritme_real; $sum_ritme_real_count++; }
 					if ( $ritme_percentage != 0 ) { $sum_ritme_percent += $ritme_percentage; $sum_ritme_percent_count++; }
+					if ( $pulse != 0 ) { $sum_pulse += $pulse; $sum_pulse_count++; }
 
 					$tds_out .= '<tr><th scope="row">'.$filter_count.'</th>';
 					$f_count = 0;
@@ -341,7 +352,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 				$tds_out .= '<td'.$td_class.'>'.$distance_percentage_out.'</td>'; }
 			elseif ( $f_count == 9 ) { $f = ( is_numeric($ritme_objetive_total) ) ? gmdate("i:s", $ritme_objetive_total / $ritme_objetive_total_count ) : gmdate("i:s", 0); }
 			elseif ( $f_count == 10 ) { $f = ( is_numeric($ritme_real_total) ) ? gmdate("i:s", $ritme_real_total / $ritme_real_total_count ) : gmdate("i:s", 0); }
-			elseif ( $f_count == 11 ) { $f = $pulse_out; $tds_out .= '<td'.$td_class.'>'.$ritme_percentage_out.'</td>'; }
+			elseif ( $f_count == 11 ) { $f = round($pulse_total / $pulse_total_count); $tds_out .= '<td'.$td_class.'>'.$ritme_percentage_out.'</td>'; }
 			$tds_out .= '<td'.$td_class.'>'.$f.'</td>';
 		}
 
@@ -354,6 +365,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 		if ( $ritme_objetive_total != 0 ) { $sum_ritme_objetive += $ritme_objetive_total / $ritme_objetive_total_count; $sum_ritme_objetive_count++; }
 		if ( $ritme_real_total != 0 ) { $sum_ritme_real += $ritme_real_total / $ritme_real_total_count; $sum_ritme_real_count++; }
 		if ( $ritme_percentage_total != 0 ) { $sum_ritme_percent += $ritme_percentage_total; $sum_ritme_percent_count++; }
+		if ( $pulse_total != 0 ) { $sum_pulse += $pulse_total / $pulse_total_count; $sum_pulse_count++; }
 
 	} // if view is grouped, output last data row
 
@@ -364,6 +376,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 	$sum_ritme_objetive_count = ( $sum_ritme_objetive_count === 0 ) ? 1 : $sum_ritme_objetive_count;
 	$sum_ritme_real_count = ( $sum_ritme_real_count === 0 ) ? 1 : $sum_ritme_real_count;
 	$sum_ritme_percent_count = ( $sum_ritme_percent_count === 0 ) ? 1 : $sum_ritme_percent_count;
+	$sum_pulse_count = ( $sum_pulse_count === 0 ) ? 1 : $sum_pulse_count;
 	while ( $sum_count <= 11 ) {
 		if ( $sum_count == 4 ) $tds_out .= '<td class="text-info text-right"><strong>'. round($sum_dist_objective,2) .'</strong></td>';
 		elseif ( $sum_count == 5 ) $tds_out .= '<td class="text-info text-right"><strong>'. round($sum_dist_real,2) .'</strong></td>';
@@ -372,6 +385,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 		elseif ( $sum_count == 8 ) $tds_out .= '<td class="text-info text-right"><strong>'.gmdate("i:s",$sum_ritme_objetive / $sum_ritme_objetive_count).'</strong></td>';
 		elseif ( $sum_count == 9 ) $tds_out .= '<td class="text-info text-right"><strong>'.gmdate("i:s",$sum_ritme_real / $sum_ritme_real_count).'</strong></td>';
 		elseif ( $sum_count == 10 ) $tds_out .= '<td class="text-success text-right"><strong>'.round($sum_ritme_percent / $sum_ritme_percent_count).'</strong></td>';
+		elseif ( $sum_count == 11 ) $tds_out .= '<td class="text-right"><strong>'.round($sum_pulse / $sum_pulse_count).'</strong></td>';
 		else { $tds_out .= '<td class="active"></td>'; }
 		$sum_count++;
 	}
