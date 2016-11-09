@@ -25,6 +25,9 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 	$ths_out = '<tr><th></th>'; // headers container
 	$tds_out = ''; // list container
 	$line = -1;
+
+	$col_slugs = array();
+
 	while ( ($fp_csv = fgetcsv($fp,$line_length,$delimiter)) !== FALSE ) { // begin main loop
 
 		$line++;
@@ -32,7 +35,13 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 		// HEADERS GENERATION
 		if ( $line == 0 ) {
 			foreach ( $fp_csv as $f ) {
-				$ths_out .= '<th>'.$f.'</th>';
+				$col_slug = strtolower(str_replace(' ', '', $f));
+				$col_slugs[] = $col_slug;
+				$btn_sort = '<button class="sort btn btn-warning btn-xs" data-sort="'.$col_slug.'">
+					<span class="glyphicon glyphicon-sort-by-alphabet" aria-hidden="true"></span>
+				</button>';
+				$ths_out .= '<th>'.$f.' '.$btn_sort.'</th>';
+
 			}
 			$ths_out .= '<th></th>';
 		}
@@ -45,8 +54,8 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 			$name = $firstname. ' ' .$lastname;
 //			$email = $fp_csv[3];
 			$tds_out .= '<tr><th scope="row">'.$line.'</th>';
-			foreach ( $fp_csv as $f ) {
-				$tds_out .= '<td>'.$f.'</td>';
+			foreach ( $fp_csv as $i => $f ) {
+				$tds_out .= '<td class="'.$col_slugs[$i].'">'.$f.'</td>';
 			}
 
 			// links to access user data
@@ -80,11 +89,11 @@ $tit = "Listado de usuarios"; // Page title
 <header class="row"><h1 class="col-md-12"><?php echo $tit; ?></h1></header>
 
 	<div class="table-responsive">
-	<table class="table table-condensed table-hover">
+	<table id="users" class="table table-condensed table-hover">
 	<thead>
 		<?php echo $ths_out; ?>
 	</thead>
-	<tbody>
+	<tbody class="list">
 		<?php echo $tds_out; ?>
 	</tbody>
 	</table>

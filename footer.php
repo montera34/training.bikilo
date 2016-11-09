@@ -8,5 +8,13 @@ $( function() {
 	});
 });
 </script>
+<script src="js/list.min.js"></script>
+<script type="text/javascript">
+var options = {
+valueNames: [ <?php echo "'".implode( "', '",$col_slugs )."'"; ?> ]
+};
+var userList = new List('users', options);
+</script>
+
 </body><!-- end body as main contaivaner -->
 </html>
