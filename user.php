@@ -208,6 +208,14 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 				if ( $view == 'grouped' ) {
 					$grouped_count++;
 					$grouped_quantity++;
+					$in_group = 0;
+					foreach ( $trainings as $t ) {
+						if ( $t['type'] == $fp_csv[4] && $t['name'] == $fp_csv[5] ) {
+							$in_group = 1;
+							break;
+						}
+					}
+					
 					if ( $fp_csv[3] == $date_old || $grouped_count === 1 ) { // if same date and same training type, then sum the partials
 						$date_out = $fp_csv[3];
 						$training_out = $fp_csv[4];
@@ -215,8 +223,8 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 						if ( is_numeric($distance_objetive) ) $distance_objetive_total += $distance_objetive;
 						if ( is_numeric($distance_real) ) $distance_real_total += $distance_real;
 						if ( is_numeric($time) ) $time_total += $time;
-						if ( is_numeric($ritme_objetive) ) { $ritme_objetive_total += $ritme_objetive; $ritme_objetive_total_count++; }
-						if ( is_numeric($ritme_real) ) { $ritme_real_total += $ritme_real; $ritme_real_total_count++; }
+						if ( is_numeric($ritme_objetive) && $in_group === 1 ) { $ritme_objetive_total += $ritme_objetive; $ritme_objetive_total_count++; }
+						if ( is_numeric($ritme_real) && $in_group === 1 ) { $ritme_real_total += $ritme_real; $ritme_real_total_count++; }
 						if ( is_numeric($pulse) ) { $pulse_total += $pulse; $pulse_total_count++; }
 						$time_prev = $fp_csv[8];
 
@@ -268,9 +276,9 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 						$distance_objetive_total = ( is_numeric($distance_objetive) ) ? $distance_objetive : 0;
 						$distance_real_total = ( is_numeric($distance_real) ) ? $distance_real : 0;
 						$time_total = ( is_numeric($time) ) ? $time : 0;
-						if ( is_numeric($ritme_objetive) ) { $ritme_objetive_total =  $ritme_objetive; } else { $ritme_objetive_total = 0; }
+						if ( is_numeric($ritme_objetive) && $in_group === 1 ) { $ritme_objetive_total =  $ritme_objetive; } else { $ritme_objetive_total = 0; }
 						$ritme_objetive_total_count = 1;
-						if ( is_numeric($ritme_real) ) { $ritme_real_total = $ritme_real; } else { $ritme_real_total = 0; }
+						if ( is_numeric($ritme_real) && $in_group === 1 ) { $ritme_real_total = $ritme_real; } else { $ritme_real_total = 0; }
 						$ritme_real_total_count = 1;
 						if ( is_numeric($pulse) ) { $pulse_total = $pulse; } else { $pulse_total = 0; }
 						$pulse_total_count = 1; 
