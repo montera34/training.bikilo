@@ -65,7 +65,9 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 
 	$ths_out = '<tr><th></th>'; // headers container
 	$tds_out = ''; // list container
-
+	$th_class = '';
+	$td_class = '';
+	// containers for sums of every visible row
 	$sum_dist_objective = 0;
 	$sum_dist_real = 0;
 	$sum_dist_percent = 0;
@@ -79,12 +81,9 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 	$sum_ritme_percent_count = 0;
 	$sum_pulse = 0;
 	$sum_pulse_count = 0;
-
-	$th_class = '';
-	$td_class = '';
-
+	// filter counter
 	$filter_count = 0;
-
+	// containers for grouped view
 	$date_old = '';
 	$grouped_count = 0;
 	$grouped_quantity = -1;
@@ -123,7 +122,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 
 		// LIST GENERATION
 		else {
-			// fields
+			// fields in $fp_csv
 			//  3 Fecha
 			//  4 Entrenamiento
 			//  5 Nombre
@@ -208,10 +207,10 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 				if ( $view == 'grouped' ) {
 					$grouped_count++;
 					$grouped_quantity++;
-					$in_group = 0;
+					$ritme_in_group = 0;
 					foreach ( $trainings as $t ) {
-						if ( $t['type'] == $fp_csv[4] && $t['name'] == $fp_csv[5] ) {
-							$in_group = 1;
+						if ( trim(strtolower($t['type'])) == strtolower($fp_csv[4]) && trim(strtolower($t['name_for_ritme'])) == strtolower($fp_csv[5]) ) {
+							$ritme_in_group = 1;
 							break;
 						}
 					}
@@ -223,12 +222,13 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 						if ( is_numeric($distance_objetive) ) $distance_objetive_total += $distance_objetive;
 						if ( is_numeric($distance_real) ) $distance_real_total += $distance_real;
 						if ( is_numeric($time) ) $time_total += $time;
-						if ( is_numeric($ritme_objetive) && $in_group === 1 ) { $ritme_objetive_total += $ritme_objetive; $ritme_objetive_total_count++; }
-						if ( is_numeric($ritme_real) && $in_group === 1 ) { $ritme_real_total += $ritme_real; $ritme_real_total_count++; }
+						if ( is_numeric($ritme_objetive) && $ritme_in_group === 1 ) { $ritme_objetive_total += $ritme_objetive; $ritme_objetive_total_count++; }
+						if ( is_numeric($ritme_real) && $ritme_in_group === 1 ) { $ritme_real_total += $ritme_real; $ritme_real_total_count++; }
 						if ( is_numeric($pulse) ) { $pulse_total += $pulse; $pulse_total_count++; }
 						$time_prev = $fp_csv[8];
 
-					} else { // if not the same date and training type, then output total
+					}
+					else { // if not the same date and training type, then output total
 						$tds_out .= '<tr><th scope="row">'.$grouped_quantity.'</th>';
 						$grouped_quantity = 0;
 						$f_count = 0;
@@ -239,6 +239,7 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 						$ritme_percentage_total = ( $ritme_real_total != 0 ) ? round( ( $ritme_objetive_total * 100 ) / $ritme_real_total ) : 0;
 						$ritme_percentage_out = '<span class="text-success">'.$ritme_percentage_total.'</span>';
 
+						// generate output for this group
 						foreach ( $fp_csv as $f ) {
 							if ( $f_count == 6 ) { $td_class = ' class="text-right"'; }
 							if ( $f_count != 0 && $f_count != 1 && $f_count != 2 ) {
@@ -276,18 +277,16 @@ if ( $fp !== FALSE ) { // if the file exists and is readable
 						$distance_objetive_total = ( is_numeric($distance_objetive) ) ? $distance_objetive : 0;
 						$distance_real_total = ( is_numeric($distance_real) ) ? $distance_real : 0;
 						$time_total = ( is_numeric($time) ) ? $time : 0;
-						if ( is_numeric($ritme_objetive) && $in_group === 1 ) { $ritme_objetive_total =  $ritme_objetive; } else { $ritme_objetive_total = 0; }
-						$ritme_objetive_total_count = 1;
-						if ( is_numeric($ritme_real) && $in_group === 1 ) { $ritme_real_total = $ritme_real; } else { $ritme_real_total = 0; }
-						$ritme_real_total_count = 1;
-						if ( is_numeric($pulse) ) { $pulse_total = $pulse; } else { $pulse_total = 0; }
-						$pulse_total_count = 1; 
+						if ( is_numeric($ritme_objetive) && $ritme_in_group === 1 ) { $ritme_objetive_total = $ritme_objetive; $ritme_objetive_total_count = 1; } else { $ritme_objetive_total = 0; $ritme_objetive_total_count = 0; }
+						if ( is_numeric($ritme_real) && $ritme_in_group === 1 ) { $ritme_real_total = $ritme_real; $ritme_real_total_count = 1; } else { $ritme_real_total = 0; $ritme_real_total_count = 0; }
+						if ( is_numeric($pulse) ) { $pulse_total = $pulse; $pulse_total_count = 1; } else { $pulse_total = 0; $pulse_total_count = 1; }
 
 					}
 					$date_old = $fp_csv[3];
 
 				// if view all
-				} else {
+				}
+				else {
 
 					// get distance and ritme relations
 					$distance_percentage = ( $distance_objetive != 0 ) ? round( ( $distance_real * 100 ) / $distance_objetive ) : 0;
